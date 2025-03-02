@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Required environment variables
-CONTRACT_ID = os.getenv("CONTRACT_ID")
+CONTRACT_ID = os.getenv("ORACLE_ACCOUNT_ID")
 ORACLE_ACCOUNT_ID = os.getenv("ORACLE_ACCOUNT_ID")
 ODDS_API_KEY = os.getenv("ODDS_API_KEY")
 ORACLE_PRIVATE_KEY = os.getenv("ORACLE_PRIVATE_KEY")
