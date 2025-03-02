@@ -264,7 +264,6 @@ def resolve_market_logic(market):
     """
     desc = market["description"].lower()
     if desc.startswith("crypto"):
-        print("Crypto resolution not implemented in this example.")
         return resolve_crypto_market(market)
     elif desc.startswith("sport"):
         return resolve_sports_market(market)
