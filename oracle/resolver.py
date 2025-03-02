@@ -38,10 +38,7 @@ def get_all_markets():
     which contains the list of markets.
     """
     try:
-        print(CONTRACT_ID)
-        print("HELLO")
         res = oracle_account.view_function(CONTRACT_ID, "getAllMarkets", {})
-        print(res)
         # Extract the list of markets from the "result" key
         markets = res.get("result", [])
     except Exception as e:
