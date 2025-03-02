@@ -138,7 +138,7 @@ export class PredictionMarket {
     this.markets.set(marketKey, market);
     this.distributePayouts(market, finalOutcome);
   }
-  
+
   private distributePayouts(market: Market, outcome: Outcome): void {
     const totalPool = market.yesPool + market.noPool;
     if (totalPool === BigInt(0)) return;
