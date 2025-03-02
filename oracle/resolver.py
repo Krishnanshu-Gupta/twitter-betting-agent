@@ -1,54 +1,73 @@
 import os
 import time
 import json
-import subprocess
 import requests
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Required environment variables:
-# CONTRACT_ID: your deployed NEAR contract account (e.g., "1t2_hacks.testnet")
-# ORACLE_ACCOUNT_ID: the NEAR account that the oracle uses to sign resolution transactions
-# ODDS_API_KEY: your API key for the Odds API
+# Required environment variables
 CONTRACT_ID = os.getenv("CONTRACT_ID")
 ORACLE_ACCOUNT_ID = os.getenv("ORACLE_ACCOUNT_ID")
 ODDS_API_KEY = os.getenv("ODDS_API_KEY")
+ORACLE_PRIVATE_KEY = os.getenv("ORACLE_PRIVATE_KEY")
 
-if not CONTRACT_ID or not ORACLE_ACCOUNT_ID or not ODDS_API_KEY:
-    raise ValueError("Missing required environment variables.")
+if not (CONTRACT_ID and ORACLE_ACCOUNT_ID and ODDS_API_KEY and ORACLE_PRIVATE_KEY):
+    raise ValueError("Missing one or more required environment variables.")
+
+# Import near_api classes
+from near_api.providers import JsonProvider
+from near_api.signer import KeyPair, Signer
+from near_api.account import Account
+
+# Set up NEAR RPC provider (using testnet endpoint)
+provider = JsonProvider("https://rpc.testnet.near.org")
+
+# Create a key pair and signer for the oracle account
+key_pair = KeyPair(ORACLE_PRIVATE_KEY)
+signer = Signer(ORACLE_ACCOUNT_ID, key_pair)
+
+# Create an account object for interacting with the contract
+oracle_account = Account(provider, signer)
 
 def get_all_markets():
-    """Fetch all markets using the contract's getAllMarkets view function."""
-    cmd = ["near", "view", CONTRACT_ID, "getAllMarkets", "{}", "--networkId", "testnet"]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    """
+    Fetch all markets using the contract's getAllMarkets view function.
+    The near_api call returns a dictionary that includes a "result" key,
+    which contains the list of markets.
+    """
     try:
-        markets = json.loads(result.stdout)
+        res = oracle_account.view_function(CONTRACT_ID, "getAllMarkets", {})
+        # Extract the list of markets from the "result" key
+        markets = res.get("result", [])
     except Exception as e:
-        print("Error parsing getAllMarkets output:", e)
-        print(result.stdout)
+        print("Error calling getAllMarkets:", e)
         markets = []
     return markets
 
 def resolve_market_onchain(market_id, outcome_str):
-    """Call the contract to resolve the market with the given outcome."""
-    args = json.dumps({"marketId": market_id, "outcomeStr": outcome_str})
-    cmd = [
-        "near", "call", CONTRACT_ID, "resolveMarketWithOutcome", args,
-        "--accountId", ORACLE_ACCOUNT_ID,
-        "--depositYocto", "0",
-        "--gas", "30000000000000"
-    ]
-    print(f"Resolving market {market_id} with outcome '{outcome_str}'")
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.stderr:
-        print("Error resolving market:", result.stderr)
-    else:
-        print("Market resolved successfully:", result.stdout)
+    """
+    Call the contract to resolve the market with the given outcome.
+    Uses the function_call method from near_api.
+    """
+    args = {"marketId": market_id, "outcomeStr": outcome_str}
+    try:
+        result = oracle_account.function_call(
+            CONTRACT_ID,
+            "resolveMarketWithOutcome",
+            args,
+            gas=30000000000000,
+            amount=0
+        )
+        print(f"Market {market_id} resolved with outcome '{outcome_str}':", result)
+    except Exception as e:
+        print(f"Error resolving market {market_id}:", e)
 
 def fetch_sports_data(sport_id):
-    """Fetch match data for the given sport_id from the Odds API."""
+    """
+    Fetch match data for the given sport_id from the Odds API.
+    """
     url = f"https://api.the-odds-api.com/v4/sports/{sport_id}/scores/?daysFrom=1&apiKey={ODDS_API_KEY}"
     try:
         response = requests.get(url)
@@ -67,16 +86,15 @@ def resolve_sports_market(market):
        "sport NBA New York Knicks < 10" -> check if Knicks won by less than 10 points
     """
     try:
-        # Split the description into parts
         parts = market["description"].split()
         if len(parts) < 4:
             print("Invalid sports market description:", market["description"])
             return "no"
 
         # The first part is "sport" and the second is the league.
-        league = parts[1].upper()  # e.g., "NBA"
+        league = parts[1].upper()
 
-        # Identify the condition token (which can be "win", ">", or "<")
+        # Identify the condition token ("win", ">", or "<")
         conditions = {"win", ">", "<"}
         condition_index = None
         for i in range(2, len(parts)):
@@ -88,7 +106,7 @@ def resolve_sports_market(market):
             print("No valid condition found in sports market description:", market["description"])
             return "no"
 
-        # The team name consists of all tokens between index 2 and the condition token.
+        # The team name is all tokens between index 2 and the condition token.
         team_tokens = parts[2:condition_index]
         if not team_tokens:
             print("No team name found in sports market description:", market["description"])
@@ -98,8 +116,7 @@ def resolve_sports_market(market):
         condition = parts[condition_index].lower()
         threshold = None
         if condition == "win":
-            # no threshold needed for a simple win market
-            pass
+            pass  # no threshold needed
         elif condition in {">", "<"}:
             if len(parts) <= condition_index + 1:
                 print("Missing threshold in sports market description")
@@ -146,13 +163,11 @@ def resolve_sports_market(market):
             print("No completed match found for team", team)
             return "no"
 
-        # Extract scores.
         scores = match_found.get("scores", [])
         if not scores or len(scores) < 2:
             print("No valid scores found in match")
             return "no"
 
-        # Determine team's and opponent's score.
         team_score = None
         opponent_score = None
         home_team = match_found.get("home_team", "")
@@ -174,7 +189,6 @@ def resolve_sports_market(market):
 
         print(f"Match: {home_team} vs {away_team}. {team} score: {team_score}, Opponent score: {opponent_score}")
 
-        # For margin-based conditions, first check that the team won.
         if condition == "win":
             return "yes" if team_score > opponent_score else "no"
         elif condition == ">":
@@ -194,9 +208,13 @@ def resolve_sports_market(market):
         return "no"
 
 def resolve_market_logic(market):
+    """
+    Determine the resolution outcome for a market.
+    For crypto markets (not implemented) returns "no".
+    For sport markets, calls resolve_sports_market.
+    """
     desc = market["description"].lower()
     if desc.startswith("crypto"):
-        # Crypto resolution logic goes here (omitted for brevity)
         print("Crypto resolution not implemented in this example.")
         return "no"
     elif desc.startswith("sport"):
@@ -206,6 +224,10 @@ def resolve_market_logic(market):
         return "no"
 
 def process_expired_markets():
+    """
+    Fetch all markets and, for any unresolved market whose endTime has passed,
+    determine the outcome and resolve it onchain.
+    """
     markets = get_all_markets()
     now_ns = int(time.time() * 1e9)
     for market in markets:
