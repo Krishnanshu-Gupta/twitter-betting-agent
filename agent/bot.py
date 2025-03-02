@@ -36,20 +36,6 @@ TWITTER_ACCESS_SECRET = os.getenv("TWITTER_ACCESS_SECRET")
 TWITTER_USER_ID = os.getenv("TWITTER_USER_ID")  # Your Twitter user ID
 WEB_APP_BASE_URL = os.getenv("WEB_APP_BASE_URL")
 
-# File to store the last processed tweet ID
-LAST_TWEET_FILE = "last_tweet_id.txt"
-
-def load_last_tweet_id():
-    try:
-        with open(LAST_TWEET_FILE, "r") as f:
-            return int(f.read().strip())
-    except Exception:
-        return None
-
-def save_last_tweet_id(tweet_id: int):
-    with open(LAST_TWEET_FILE, "w") as f:
-        f.write(str(tweet_id))
-
 def parse_endtime_to_ns(endtime_str: str) -> str:
     """
     Parses an end time string in "YYYY-MM-DD HH:MM:SS" format (assumed UTC)
@@ -196,7 +182,6 @@ def process_mentions():
     - "@betbotx market sport NBA New York Knics > 10"
     """
     for tweet in tweets:
-        new_last_id = max(new_last_id, int(tweet.id))
         text = tweet.text.strip()
         text = text.replace("@betbotx", "").strip()
         tokens = text.strip().split()
@@ -231,9 +216,6 @@ def process_mentions():
             reply_market_info(client, tweet.id, "_".join(tokens[1:]))
         else:
             reply_to_tweet(client, tweet.id, "Invalid command")
-
-    save_last_tweet_id(new_last_id)
-    print("Updated last tweet ID to:", new_last_id)
 
 def main():
     process_mentions()
