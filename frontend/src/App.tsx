@@ -52,8 +52,7 @@ function App({ selector, currentUser }: AppProps): JSX.Element {
         // URL structure: /create/{description...}/{endTime}
         const [_, description, endTime] = pathParts;
         const descr = decodeURIComponent(description).replace(/_/g, " ");
-        console.log(descr, ", ", endTime);
-        setPendingMarket({ description, endTime });
+        setPendingMarket({ description: descr, endTime });
       }
     }
   }, [location]);
