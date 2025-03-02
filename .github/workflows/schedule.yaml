@@ -1,0 +1,39 @@
+name: Run Oracle Script every 6 hours
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  run-oracle-script:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./oracle  # All steps run in the /oracle folder
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install NEAR CLI
+        run: |
+          curl -o near-cli.zip -L https://github.com/near/near-cli/releases/download/v4.0.0/near-cli_linux.zip
+          unzip near-cli.zip -d /usr/local/bin
+          rm near-cli.zip
+
+      - name: Run the Oracle script
+        env:
+          CONTRACT_ID: ${{ secrets.CONTRACT_ID }}
+          ORACLE_ACCOUNT_ID: ${{ secrets.ORACLE_ACCOUNT_ID }}
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python your_script.py
