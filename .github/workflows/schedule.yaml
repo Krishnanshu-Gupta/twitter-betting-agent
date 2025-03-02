@@ -27,7 +27,7 @@ jobs:
 
       - name: Install NEAR CLI
         run: |
-          curl -o near-cli.zip -L https://github.com/near/near-cli/releases/download/v4.0.0/near-cli_linux.zip
+          curl -o near-cli.zip -L https://github.com/near/near-cli/archive/refs/tags/v4.0.11.zip
           unzip near-cli.zip -d /usr/local/bin
           rm near-cli.zip
 
