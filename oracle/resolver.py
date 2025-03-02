@@ -27,6 +27,7 @@ def get_all_markets():
         markets = json.loads(result.stdout)
     except Exception as e:
         print("Error parsing getAllMarkets output:", e)
+        print(result.stdout)
         markets = []
     return markets
 
