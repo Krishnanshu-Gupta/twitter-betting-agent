@@ -21,7 +21,7 @@ if not CONTRACT_ID or not ORACLE_ACCOUNT_ID or not ODDS_API_KEY:
 
 def get_all_markets():
     """Fetch all markets using the contract's getAllMarkets view function."""
-    cmd = ["near", "view", CONTRACT_ID, "getAllMarkets", "{}"]
+    cmd = ["near", "view", CONTRACT_ID, "getAllMarkets", "{}", "--networkId", "testnet"]
     result = subprocess.run(cmd, capture_output=True, text=True)
     try:
         markets = json.loads(result.stdout)
@@ -219,9 +219,6 @@ def process_expired_markets():
 
 def main():
     print("Polling contract for expired, unresolved markets...")
-    print("Contract ID:", CONTRACT_ID)
-    print("Oracle account ID:", ORACLE_ACCOUNT_ID)
-    print("Odds API key:", ODDS_API_KEY)
     process_expired_markets()
 
 if __name__ == "__main__":
