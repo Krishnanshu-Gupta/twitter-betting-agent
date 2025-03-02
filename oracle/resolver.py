@@ -218,6 +218,9 @@ def process_expired_markets():
 
 def main():
     print("Polling contract for expired, unresolved markets...")
+    print("Contract ID:", CONTRACT_ID)
+    print("Oracle account ID:", ORACLE_ACCOUNT_ID)
+    print("Odds API key:", ODDS_API_KEY)
     process_expired_markets()
 
 if __name__ == "__main__":
