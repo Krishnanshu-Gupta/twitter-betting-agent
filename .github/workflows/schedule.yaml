@@ -36,4 +36,4 @@ jobs:
           CONTRACT_ID: ${{ secrets.CONTRACT_ID }}
           ORACLE_ACCOUNT_ID: ${{ secrets.ORACLE_ACCOUNT_ID }}
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-        run: python your_script.py
+        run: python resolver.py
