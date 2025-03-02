@@ -207,6 +207,55 @@ def resolve_sports_market(market):
         print("Error in resolve_sports_market:", e)
         return "no"
 
+def fetch_crypto_price(asset):
+    """
+    Fetch the current price of the asset (e.g. "ETH") using CoinGecko API.
+    CoinGecko uses lowercase IDs, so ensure you pass the asset in lowercase.
+    """
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids={asset.lower()}&vs_currencies=usd"
+    try:
+        response = requests.get(url)
+        data = response.json()
+        price = data[asset.lower()]["usd"]
+        return price
+    except Exception as e:
+        print("Error fetching crypto price:", e)
+        return None
+
+def resolve_crypto_market(market):
+    """
+    Parse market description of the form: "crypto ETH > 80000"
+    and determine outcome by comparing the current price.
+    """
+    try:
+        # Split description into parts.
+        # Expecting format: "crypto ETH > 80000"
+        parts = market["description"].split()
+        if len(parts) < 4:
+            print("Description format invalid for crypto market:", market["description"])
+            return "no"
+        asset = parts[1]      # e.g., "ETH"
+        operator = parts[2]   # e.g., ">"
+        threshold = float(parts[3])
+        current_price = fetch_crypto_price(asset)
+        if current_price is None:
+            return "no"
+        print(f"Crypto market: {asset} current price = {current_price}, threshold = {threshold}")
+        if operator == ">":
+            return "yes" if current_price > threshold else "no"
+        elif operator == "<":
+            return "yes" if current_price < threshold else "no"
+        elif operator == "=":
+            # For equality, you might want to allow a small delta.
+            delta = 0.01 * threshold
+            return "yes" if abs(current_price - threshold) < delta else "no"
+        else:
+            print("Unknown operator in crypto market:", operator)
+            return "no"
+    except Exception as e:
+        print("Error resolving crypto market:", e)
+        return "no"
+
 def resolve_market_logic(market):
     """
     Determine the resolution outcome for a market.
@@ -216,7 +265,7 @@ def resolve_market_logic(market):
     desc = market["description"].lower()
     if desc.startswith("crypto"):
         print("Crypto resolution not implemented in this example.")
-        return "no"
+        return resolve_crypto_market(market)
     elif desc.startswith("sport"):
         return resolve_sports_market(market)
     else:
