@@ -31,7 +31,7 @@ near_account = Account(provider, signer)
 TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
 TWITTER_API_SECRET = os.getenv("TWITTER_API_SECRET")
-TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
+TWITTER_ACCESS_KEY = os.getenv("TWITTER_ACCESS_KEY")
 TWITTER_ACCESS_SECRET = os.getenv("TWITTER_ACCESS_SECRET")
 TWITTER_USER_ID = os.getenv("TWITTER_USER_ID")  # Your Twitter user ID
 WEB_APP_BASE_URL = os.getenv("WEB_APP_BASE_URL")
@@ -60,17 +60,22 @@ def get_all_markets():
     return markets
 
 
-def reply_to_tweet(client, tweet_id, message):
+def reply_to_tweet(tweet_id, message):
     """
     Reply to the tweet with the provided message using the Tweepy client.
     """
     try:
+        client = tweepy.Client(
+            consumer_key=TWITTER_API_KEY,
+            consumer_secret=TWITTER_API_SECRET,
+            access_token=TWITTER_ACCESS_KEY,
+            access_token_secret=TWITTER_ACCESS_SECRET
+        )
         response = client.create_tweet(in_reply_to_tweet_id=tweet_id, text=message)
-        print(f"Replied to tweet {tweet_id} with message:\n{message}")
     except Exception as e:
         print("Error replying to tweet:", e)
 
-def reply_all_markets(client, tweet_id):
+def reply_all_markets(tweet_id):
     """
     Reply with a list of active (unresolved) markets.
     """
@@ -90,9 +95,9 @@ def reply_all_markets(client, tweet_id):
         message = "Active Markets:\n" + "\n".join(lines)
         if len(message) > 280:
             message = message[:277] + "..."
-    reply_to_tweet(client, tweet_id, message)
+    reply_to_tweet(tweet_id, message)
 
-def reply_address_bets(client, tweet_id, address):
+def reply_address_bets(tweet_id, address):
     """
     Reply with bets for a given address by scanning through active markets.
     """
@@ -117,10 +122,10 @@ def reply_address_bets(client, tweet_id, address):
         message = f"Bets for {address}:\n" + "\n".join(lines)
         if len(message) > 280:
             message = message[:277] + "..."
-    reply_to_tweet(client, tweet_id, message)
+    reply_to_tweet(tweet_id, message)
 
 
-def reply_market_info(client, tweet_id, description):
+def reply_market_info(tweet_id, description):
     """
     Reply with information for a market matching the provided description (case-insensitive).
     """
@@ -135,13 +140,15 @@ def reply_market_info(client, tweet_id, description):
         timestamp_seconds = int(market.get("endTime")) / 1e9
         dt = datetime.fromtimestamp(timestamp_seconds, tz=timezone.utc)
         formatted_date = dt.strftime("%Y-%m-%d %H:%M:%S.%f %Z")
-        message = f"Market: {market.get('description')}\nEnds: {formatted_date}\nYes Pool: {market.get('yesPool')}\nNo Pool: {market.get('noPool')}"
+        yesPool = int(market.get("yesPool")) / 1e24
+        noPool = int(market.get("noPool")) / 1e24
+        message = f"Market: {market.get('description')}\nEnds: {formatted_date}\nYes Pool: {yesPool}\nNo Pool: {noPool}"
     else:
         message = f"No active market found with description '{description}'."
 
     if len(message) > 280:
         message = message[:277] + "..."
-    reply_to_tweet(client, tweet_id, message)
+    reply_to_tweet(tweet_id, message)
 
 def process_mentions():
     """
@@ -153,7 +160,7 @@ def process_mentions():
     client = tweepy.Client(
         consumer_key=TWITTER_API_KEY,
         consumer_secret=TWITTER_API_SECRET,
-        access_token=TWITTER_ACCESS_TOKEN,
+        access_token=TWITTER_ACCESS_KEY,
         access_token_secret=TWITTER_ACCESS_SECRET
     )
     client2 = tweepy.Client(TWITTER_BEARER_TOKEN)
@@ -176,10 +183,10 @@ def process_mentions():
     Expected format examples:
     - "@betbotx create sport NBA New York Knics win 2024-03-01 12:00:00"
     - "@betbotx create sport NBA New York Knics > 10 2024-03-01 12:00:00"
-    - "@betbotx bet sport NBA New York Knics > 10 1.4 yes"
+    - "@betbotx bet sport MLS LA Galaxy > 1 1.4 yes"
     - "@betbotx markets"
     - "@betbotx bets <address>"
-    - "@betbotx market sport NBA New York Knics > 10"
+    - "@betbotx market sport NBA New York Knics win"
     """
     for tweet in tweets:
         text = tweet.text.strip()
@@ -192,30 +199,28 @@ def process_mentions():
             endtime_str = f"{end_date} {end_time}"
             epoch = parse_endtime_to_ns(endtime_str)
             res = "_".join(tokens[1:-2])
-            reply_to_tweet(client, tweet.id, "Visit: " + WEB_APP_BASE_URL + "/create/" + res + "/" + epoch)
+            reply_to_tweet(tweet.id, "Visit: " + WEB_APP_BASE_URL + "/create/" + res + "/" + epoch)
         elif text.startswith("bet"):
-            market = "_".join(tokens[1:-2])
+            market = " ".join(tokens[1:-2])
             amt = tokens[-2]
             outcome = tokens[-1]
-            if outcome == "yes":
-                outcome = "0"
-            else:
-                outcome = "1"
             markets = get_all_markets()
             market = next((m for m in markets if m.get("description", "").lower() == market.lower()), None)
+
             if market:
                 marketId = str(market.get("id"))
-                reply_to_tweet(client, tweet.id, "Visit: " + WEB_APP_BASE_URL + "/bet/" + marketId + "/" + outcome + "/" + amt)
+                reply_to_tweet(tweet.id, "Visit: " + WEB_APP_BASE_URL + "/bet/" + marketId + "/" + outcome + "/" + amt)
             else:
-                reply_to_tweet(client, tweet.id, "Market not found")
+                reply_to_tweet(tweet.id, "Market not found")
         elif text.startswith("markets"):
-            reply_all_markets(client, tweet.id)
+            reply_all_markets(tweet.id)
         elif text.startswith("bets"):
-            reply_address_bets(client, tweet.id, tokens[1])
+            print(tokens[1])
+            reply_address_bets(tweet.id, tokens[1])
         elif text.startswith("market"):
-            reply_market_info(client, tweet.id, "_".join(tokens[1:]))
+            reply_market_info(tweet.id, " ".join(tokens[1:]))
         else:
-            reply_to_tweet(client, tweet.id, "Invalid command")
+            reply_to_tweet(tweet.id, "Invalid command")
 
 def main():
     process_mentions()

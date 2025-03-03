@@ -4,4 +4,3 @@ requests
 python-dotenv
 datetime
 near-api
-re
