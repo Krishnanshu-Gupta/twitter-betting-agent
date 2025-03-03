@@ -40,4 +40,4 @@ jobs:
           echo "WEB_APP_BASE_URL=${{ secrets.WEB_APP_BASE_URL }}" >> $GITHUB_ENV
 
       - name: Run Twitter Bot
-        run: python agent/bot.py
+        run: python bot.py
