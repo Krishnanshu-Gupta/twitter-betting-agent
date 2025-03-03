@@ -199,6 +199,7 @@ function App({ selector, currentUser }: AppProps): JSX.Element {
         setMarketInfo(null);
       } else {
         setMarketInfo(market);
+        console.log(market)
       }
       // Optionally clear other states
       setActiveMarkets([]);
@@ -240,7 +241,6 @@ function App({ selector, currentUser }: AppProps): JSX.Element {
       alert("Market created.");
       window.history.pushState({}, "", "/");
       setPendingMarket(null);
-      setResult(JSON.stringify(outcome));
     } catch (error) {
       console.error("Error creating market:", error);
       alert("Error creating market");
@@ -276,7 +276,6 @@ function App({ selector, currentUser }: AppProps): JSX.Element {
       alert("Bet placed successfully");
       window.history.pushState({}, "", "/");
       setPendingBet(null);
-      setResult(JSON.stringify(result));
     } catch (error) {
       console.error("Error placing bet:", error);
       alert("Error placing bet");
@@ -373,15 +372,12 @@ function App({ selector, currentUser }: AppProps): JSX.Element {
                 <div className="market-info">
                   <p>ID: {marketInfo.id}</p>
                   <p>Name: {marketInfo.description}</p>
-                  <p>Total Yes: {utils.format.formatNearAmount(marketInfo.totalYes)} Ⓝ</p>
-                  <p>Total No: {utils.format.formatNearAmount(marketInfo.totalNo)} Ⓝ</p>
+                  <p>Total Yes: {utils.format.formatNearAmount(marketInfo.yesPool)} Ⓝ</p>
+                  <p>Total No: {utils.format.formatNearAmount(marketInfo.noPool)} Ⓝ</p>
                   <p>Status: {marketInfo.isResolved ? "Resolved" : "Active"}</p>
                 </div>
               </div>
             )}
-
-            {result && <div className="result-container">Result: {result}</div>}
-
           </div>
         </div>
       )}
