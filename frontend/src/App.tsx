@@ -1,6 +1,6 @@
 // src/App.tsx
 import "./App.css";
-import { BrowserRouter, useLocation, Routes, Route } from "react-router-dom";
+import { BrowserRouter, useLocation } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { BeatLoader } from "react-spinners";
 import { setupModal } from "@near-wallet-selector/modal-ui";
@@ -40,16 +40,21 @@ function App({ selector, currentUser }: AppProps): JSX.Element {
 
   useEffect(() => {
     const pathParts = decodeURIComponent(location.pathname).split("/");
+    console.log(pathParts)
     if (pathParts.length > 0) {
-      const action = pathParts[0].toLowerCase();
-      if (action === "bet" && pathParts.length === 4) {
+      const action = pathParts[1].toLowerCase();
+      console.log(action)
+      if (action === "bet" && pathParts.length === 5) {
         // URL structure: /bet/{marketId}/{outcome}/{deposit}
-        const [_, marketId, outcomeStr, deposit] = pathParts;
+        const [_, action, marketId, outcomeStr, deposit] = pathParts;
+        console.log(marketId, outcomeStr, deposit)
         setPendingBet({ marketId: Number(marketId), outcome: outcomeStr, deposit: deposit });
-      } else if (action === "create" && pathParts.length == 3) {
+      } else if (action === "create" && pathParts.length == 4) {
         // URL structure: /create/{description...}/{endTime}
-        const [_, description, endTime] = pathParts;
+        const [_, action, description, endTime] = pathParts;
+        console.log(description, endTime)
         const descr = decodeURIComponent(description).replace(/_/g, " ");
+        console.log(descr, endTime)
         setPendingMarket({ description: descr, endTime });
       }
     }
