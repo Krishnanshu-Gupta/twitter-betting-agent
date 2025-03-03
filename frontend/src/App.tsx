@@ -39,9 +39,7 @@ function App({ selector, currentUser }: AppProps): JSX.Element {
   }, [selector]);
 
   useEffect(() => {
-    console.log("Location changed:", location.pathname);
-    const pathParts = location.pathname.split("/").filter(Boolean);
-    console.log(pathParts)
+    const pathParts = decodeURIComponent(location.pathname).split("/");
     if (pathParts.length > 0) {
       const action = pathParts[0].toLowerCase();
       if (action === "bet" && pathParts.length === 4) {
@@ -219,25 +217,8 @@ function App({ selector, currentUser }: AppProps): JSX.Element {
       return
     }
     try {
-      const wallet = await selector.wallet();
-      const outcome = await wallet.signAndSendTransaction({
-        signerId: user!,
-        receiverId: CONTRACT_ID,
-        actions: [
-          {
-            type: "FunctionCall",
-            params: {
-              methodName: "createMarket",
-              args: {
-                description: pendingMarket.description,
-                endTime: pendingMarket.endTime
-              },
-              gas: BOATLOAD_OF_GAS,
-              deposit: "0"
-            }
-          }
-        ]
-      });
+      console.log(pendingMarket)
+
       alert("Market created.");
       window.history.pushState({}, "", "/");
       setPendingMarket(null);
