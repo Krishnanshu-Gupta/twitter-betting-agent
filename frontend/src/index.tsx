@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./App";
+import Explainer from "./explainer";
 import { setupWalletSelector } from "@near-wallet-selector/core";
 import { setupHereWallet } from "@near-wallet-selector/here-wallet";
 import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
@@ -43,6 +44,7 @@ const renderApp = (selector: WalletSelector, currentUser?: string) => {
   ReactDOM.render(
     <React.StrictMode>
       <App selector={selector} currentUser={currentUser} />
+      <Explainer />
     </React.StrictMode>,
     document.getElementById("root")
   );

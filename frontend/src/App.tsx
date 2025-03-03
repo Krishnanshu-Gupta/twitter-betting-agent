@@ -1,6 +1,6 @@
 // src/App.tsx
 import "./App.css";
-import { BrowserRouter, useLocation } from "react-router-dom";
+import { BrowserRouter, useLocation, Routes, Route } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { BeatLoader } from "react-spinners";
 import { setupModal } from "@near-wallet-selector/modal-ui";
