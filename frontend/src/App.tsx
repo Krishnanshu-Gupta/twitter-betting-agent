@@ -222,8 +222,25 @@ function App({ selector, currentUser }: AppProps): JSX.Element {
       return
     }
     try {
-      console.log(pendingMarket)
-
+      const wallet = await selector.wallet();
+      const outcome = await wallet.signAndSendTransaction({
+        signerId: user!,
+        receiverId: CONTRACT_ID,
+        actions: [
+          {
+            type: "FunctionCall",
+            params: {
+              methodName: "createMarket",
+              args: {
+                description: pendingMarket.description,
+                endTime: pendingMarket.endTime
+              },
+              gas: BOATLOAD_OF_GAS,
+              deposit: "0"
+            }
+          }
+        ]
+      });
       alert("Market created.");
       window.history.pushState({}, "", "/");
       setPendingMarket(null);
