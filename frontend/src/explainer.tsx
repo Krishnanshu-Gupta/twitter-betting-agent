@@ -28,7 +28,7 @@ const codeStyle = {
 const BetBotRequestFormats = () => {
   return (
     <div style={containerStyle}>
-      <h1 style={headerStyle}>BetBot Twitter (X) Request Formatting Explained</h1>
+      <h1 style={headerStyle}>BetBotX Twitter (X) Request Formatting Explained</h1>
 
       <section style={sectionStyle}>
         <h2>Market Creation Template</h2>
@@ -179,7 +179,7 @@ const BetBotRequestFormats = () => {
       </section>
 
       <footer style={{ marginTop: '40px', fontSize: '0.9em', color: '#777' }}>
-        <p>Created by your BetBot team. For more details, refer to the bot documentation.</p>
+        <p>Created by the BetBotX team. For more details, refer to the bot documentation.</p>
       </footer>
     </div>
   );
