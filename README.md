@@ -1,8 +1,19 @@
 # BetBotX
 
-**Social betting on Twitter—wager on sports & crypto with blockchain‐secured markets, real‑time resolution, and transparent payouts.**
+<h2 align="center">
+  <strong>Social betting on Twitter — wager on sports & crypto with blockchain‑secured markets,<br>
+  real‑time resolution, and transparent payouts.</strong>
+</h2>
 
-**Winner of One Trillion Agents Hackathon by NEAR** (https://devpost.com/software/betbotx)
+<h3 align="center">
+  <a href="https://devpost.com/software/betbotx" target="_blank">
+    <img src="https://img.shields.io/badge/🏆%20Hackathon%20Winner-One%20Trillion%20Agents%20by%20NEAR-blue" alt="Hackathon Winner" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://www.youtube.com/watch?v=aG3R6s0Bnwg" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20Demo-Video-red" alt="Demo Video" />
+  </a>
+</h3>
 
 ---
 
