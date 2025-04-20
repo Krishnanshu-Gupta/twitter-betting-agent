@@ -284,4 +284,3 @@ NEXT_PUBLIC_CONTRACT_ID=<YOUR_CONTRACT>.testnet
 ## License
 
 This project is licensed under the MIT License.  
-```
