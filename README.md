@@ -2,7 +2,7 @@
 
 **Social betting on Twitter—wager on sports & crypto with blockchain‐secured markets, real‑time resolution, and transparent payouts.**
 
-**Winner of One Trillion Agents Hackathon by NEAR**
+**Winner of One Trillion Agents Hackathon by NEAR** (https://devpost.com/software/betbotx)
 
 ---
 
